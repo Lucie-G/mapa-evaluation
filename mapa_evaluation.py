@@ -121,8 +121,7 @@ def metrics_per_level(df, level):
     
     print("Called function: metrics_per_level.............................................")
 
-
-    if level == 1:
+    if level == "1":
         level = 'LEVEL1_GOLD'
         print("Computing at LEVEL 1 globally")
         count_dict = count_per_level(df, level)
@@ -131,7 +130,7 @@ def metrics_per_level(df, level):
         pretty(scores_1, value_order=False)
         print("")
 
-    elif level == 2:
+    elif level == "2":
         print("Computing at LEVEL 2 globally")
         level = 'LEVEL2_GOLD'
         count_dict = count_per_level(df, level)
@@ -140,7 +139,7 @@ def metrics_per_level(df, level):
         pretty(scores_2, value_order=False)
         print("")
 
-    elif level == 3: 
+    elif level == "3": 
         print("Computing at LEVEL 1 and LEVEL 2 globally")
         level = 1
         count_dict = count_per_level(df, level)
@@ -209,21 +208,21 @@ def metrics_per_category(df, level):
 
     print("Called function: metrics_per_category..........................................")
 
-    if level == 1:
+    if level == "1":
         level = 'LEVEL1_GOLD'
         print("Computing at LEVEL 1")
         count_dict = count_per_category(df, level)
         scores_1 = compute_scores(count_dict)
         pretty(scores_1, value_order=False)
 
-    elif level == 2:
+    elif level == "2":
         print("Computing at LEVEL 2")
         level = 'LEVEL2_GOLD'
         count_dict = count_per_category(df, level)
         scores_2 = compute_scores(count_dict)
         pretty(scores_2, value_order=False)
 
-    elif level == 3: 
+    elif level == "3": 
         print("Computing at LEVEL 1 and LEVEL 2")
         level = 1
         count_dict = count_per_category(df, level)
@@ -476,11 +475,11 @@ def class_boundary_evaluation(df):
                 class_err_dict_lvl2[gold_class][pred_class] += 1
                     
     print("=================== Error Types ===================")
-    print("\t\t\tLevel 1\t\tLevel 2")
-    print("Boundary\t\t", boundary_err_1, "\t\t", boundary_err_2)
-    print("Class\t\t\t", class_err_1, "\t\t", class_err_2)
-    print("Boundary and Class\t", boundary_class_err_1, "\t\t", boundary_class_err_2)
-    print("Total\t\t\t",level1_err, "\t\t", level2_err)
+    print("\t\t\tLevel 1\t\tLevel 2\t\tTotal")
+    print("Boundary\t\t", boundary_err_1, "\t\t", boundary_err_2, "\t\t", boundary_err_1+boundary_err_2)
+    print("Class\t\t\t", class_err_1, "\t\t", class_err_2, "\t\t", class_err_1+class_err_2)
+    print("Boundary and Class\t", boundary_class_err_1, "\t\t", boundary_class_err_2, "\t\t", boundary_class_err_1+boundary_class_err_2)
+    print("Total\t\t\t",level1_err, "\t\t", level2_err, "\t\t", level1_err+level2_err)
     print("")
     print("=================== Class Errors ===================")
     print("Level 1:")
@@ -491,10 +490,6 @@ def class_boundary_evaluation(df):
     print("")
 
     return class_err_dict_lvl1, class_err_dict_lvl2, boundary_err_1, class_err_1, boundary_class_err_1, level1_err, boundary_err_2, class_err_2, boundary_class_err_2, level2_err
-
-def TODO_slot_error_rate():
-
-    return
                   
 def error_propagation(df):
     
@@ -586,14 +581,6 @@ def error_propagation(df):
     
     return err1_corr2, corr1_err2, err1_err2, corr1_corr2_positive, corr1_corr2_negative
 
-def TODO_check_boundaries_logic():
-    
-    ##
-    ##  Checks continuity of boundary detection
-    ##
-    
-    return
-
 def pretty(d, value_order):
     
     ##
@@ -646,20 +633,34 @@ def pretty(d, value_order):
                     else:
                         print("\t\t", value, "\t\t\t", nested_value)
 
-directory = "/home/gianola/Documents/MAPA/outputs/generated_predictions_for_eval_20210727/generated_predictions_for_eval_20210727/COUR_CASSATION1::LEGAL::fr::multi::True::42::mapa_v1::IOB"
+def TODO_check_boundaries_logic():
+    
+    ##
+    ##  Checks continuity of boundary detection
+    ##
+    
+    return
 
-# parser = argparse.ArgumentParser(
-#         description="Given a directory of Vicomtech output files, count the error types")
-# parser.add_argument("dir_path", type=str,
-#                         help="Path to the directory containing the output .tsv files from Vicomtech")
-# args = parser.parse_args()
-# directory = args.dir_path
+def TODO_slot_error_rate():
+
+    return
+
+# directory = "/home/gianola/Documents/MAPA/outputs/generated_predictions_for_eval_20210727/generated_predictions_for_eval_20210727/MEDDOCAN::MEDICAL::es::multi::True::42::mapa_v1::IOB"
+
+parser = argparse.ArgumentParser(
+        description="Given a directory of Vicomtech output files, count the error types")
+parser.add_argument("dir_path", type=str,
+                        help="Path to the directory containing the output .tsv files from Vicomtech")
+parser.add_argument("level", type=str,
+                        help="Level of analysis: 1 for LEVEL1, 2 for LEVEL2, 3 for both levels")
+args = parser.parse_args()
+directory = args.dir_path
+level = args.level
 
 df = loadTSVtoDF(directory)
 
-# # count_golds(df)
-# metrics_per_level(df, 3)
 class_boundary_evaluation(df)
-# count_per_category(df, 2)
-# metrics_per_category(df, 3)
-# error_propagation(df)
+
+## For metrics functions, int parameter determines what is calculated: 1 for Level 1 only, 2 for Level 2 only, and 3 for both levels
+metrics_per_level(df, level)
+metrics_per_category(df, level)
