@@ -1,4 +1,5 @@
 import csv
+from itertools import count
 import pandas as pd
 import argparse
 from collections import defaultdict
@@ -7,9 +8,9 @@ import sequence_labelling
 
 def load_TSV_to_DF(directory):
 
-    ##
-    ## Load all files of given directory to a single dataframe
-    ##
+    """ 
+        Load all files of given directory to a single dataframe (one global dataframe)
+    """
 
     # print("File loading: load_TSV_to_DF......................................................")
 
@@ -21,6 +22,10 @@ def load_TSV_to_DF(directory):
     return df
 
 def load_each_file(directory):
+
+    """ 
+        Load each file of a given directory to a dataframe (one file per dataframe) (?)
+    """
 
     files = glob.glob(directory + "/*.tsv")
 
@@ -34,10 +39,10 @@ def load_each_file(directory):
 
 def get_category(row):
     
-    ##
-    ## Return categories from columns LEVEL1_GOLD, LEVEL2_GOLD, LEVEL1_PRED, LEVEL2_PRED
-    ## If row is 'O', returns 'O'
-    ##
+    """
+        Return categories (PERSON, DATE, family name, etc.) from columns LEVEL1_GOLD, LEVEL2_GOLD, LEVEL1_PRED, LEVEL2_PRED
+        If tag is 'O', returns 'O'
+    """
     
     gold_1 = row['LEVEL1_GOLD'].split("-", 1)
     pred_1 = row['LEVEL1_PRED'].split("-", 1)
@@ -75,10 +80,11 @@ def get_category(row):
 
 def get_category2(row, level):
     
-    ##
-    ## Return categories from columns LEVEL1_GOLD, LEVEL2_GOLD, LEVEL1_PRED, LEVEL2_PRED
-    ## If row is 'O', returns 'O'
-    ##
+    """
+        NOT IN USE
+        Return categories from columns LEVEL1_GOLD, LEVEL2_GOLD, LEVEL1_PRED, LEVEL2_PRED
+        If row is 'O', returns 'O'
+    """
     
     if level == "1":
         gold_column = 'LEVEL1_GOLD'
@@ -104,9 +110,10 @@ def get_category2(row, level):
 
 def get_boundary(row):
     
-    ##
-    ## Return boundaries from columns LEVEL1_GOLD, LEVEL2_GOLD, LEVEL1_PRED, LEVEL2_PRED
-    ##
+    """
+        Return boundaries (B or I) from columns LEVEL1_GOLD, LEVEL2_GOLD, LEVEL1_PRED, LEVEL2_PRED
+        If tag is 'O', returns O
+    """
     
     gold_1 = row['LEVEL1_GOLD'].split("-", 1)
     pred_1 = row['LEVEL1_PRED'].split("-", 1)
@@ -144,9 +151,9 @@ def get_boundary2(row, level):
 
 def count_golds(df, doPrint):
     
-    ##
-    ## Count golds globally and per category at both entity levels
-    ##
+    """
+        Count golds, insertions, deletions globally at both entity levels
+    """
     
     if doPrint == True:
         print("Called function: count_golds...................................................")
@@ -201,10 +208,10 @@ def count_golds(df, doPrint):
 
 def metrics_per_level(df, level, doPrint):
     
-    ##
-    ## Computes P, R, F and specificity for each level 
-    ## Equivalent to micro-average ?
-    ##
+    """
+        Computes P, R, F and specificity given a level of analysis
+        Equivalent to micro-average 
+    """
     
     if doPrint == True:
         print("Called function: metrics_per_level (computed on tokens)........................")
@@ -213,7 +220,7 @@ def metrics_per_level(df, level, doPrint):
         # if doPrint == True:
         #     print("Computing at LEVEL 1 globally")
         count_dict = count_per_level(df, level)
-        scores_1 = compute_scores(count_dict)
+        scores_1 = compute_scores_per_category(count_dict)
         if doPrint == True:
             # print("Scores at LEVEL 1")
             pretty(scores_1, value_order=False)
@@ -225,34 +232,19 @@ def metrics_per_level(df, level, doPrint):
         # if doPrint == True:
         #     print("Computing at LEVEL 2 globally")
         count_dict = count_per_level(df, level)
-        scores_2 = compute_scores(count_dict)
+        scores_2 = compute_scores_per_category(count_dict)
         if doPrint == True:
             # print("Scores at LEVEL 2")
             pretty(scores_2, value_order=False)
             print("")
         else:
-            return scores_2
-
-    elif level == "3": 
-        # if doPrint == True:
-        #     print("Computing at LEVEL 1 and LEVEL 2 globally")
-        level = "1"
-        count_dict = count_per_level(df, level)
-        scores_1 = compute_scores(count_dict)
-        level = "2"
-        count_dict = count_per_level(df, level)
-        scores_2 = compute_scores(count_dict)
-        if doPrint == True:
-            print("Scores at LEVEL 1")
-            pretty(scores_1, value_order=False)
-            print("")
-            print("Scores at LEVEL 2")
-            pretty(scores_2, value_order=False)
-            print("")
-        else:
-            return scores_1, scores_2  
+            return scores_2 
    
 def count_per_level(df, level):
+
+    """
+        Counts TP, TN, FP, FN, given a level
+    """
 
     count_dict = defaultdict(int)
             
@@ -291,9 +283,9 @@ def count_per_level(df, level):
 
 def metrics_per_category(df, level, doPrint):
 
-    ##
-    ##  Computes metrics per category
-    ##
+    """
+        Computes metrics per category at given level
+    """
 
     if doPrint == True:
         print("Called function: metrics_per_category.........................................")
@@ -303,7 +295,7 @@ def metrics_per_category(df, level, doPrint):
         if doPrint == True:
             print("Computing at LEVEL 1")
         count_dict = count_per_category(df, level)
-        scores_1 = compute_scores(count_dict)
+        scores_1 = compute_scores_per_category(count_dict)
         if doPrint == True:
             pretty(scores_1, value_order=False)
         else:
@@ -314,7 +306,7 @@ def metrics_per_category(df, level, doPrint):
             print("Computing at LEVEL 2")
         level = 'LEVEL2_GOLD'
         count_dict = count_per_category(df, level)
-        scores_2 = compute_scores(count_dict)
+        scores_2 = compute_scores_per_category(count_dict)
         if doPrint == True:
             pretty(scores_2, value_order=False)
         else:
@@ -325,10 +317,10 @@ def metrics_per_category(df, level, doPrint):
             print("Computing at LEVEL 1 and LEVEL 2")
         level = 1
         count_dict = count_per_category(df, level)
-        scores_1 = compute_scores(count_dict)
+        scores_1 = compute_scores_per_category(count_dict)
         level = 2
         count_dict = count_per_category(df, level)
-        scores_2 = compute_scores(count_dict)
+        scores_2 = compute_scores_per_category(count_dict)
         if doPrint == True:
             print("Scores at LEVEL1")
             pretty(scores_1, value_order=False)
@@ -338,8 +330,13 @@ def metrics_per_category(df, level, doPrint):
         else:
             return scores_1, scores_2   
 
-def compute_scores(count_dict):
+def compute_scores_per_category(count_dict):
 
+    """
+        From count_per_category, computes and returns P, R, F, specificity per category
+    """
+
+    # if count_dict in not nested
     if not any(isinstance(value, dict) for value in count_dict.values()):
 
         scores = defaultdict(int)
@@ -351,10 +348,11 @@ def compute_scores(count_dict):
 
         if TP == 0:
 
+            # if there is no TP, all metrics are put to zero
             scores[i]['Precision'] = 0
             scores[i]['Recall'] = 0
             scores[i]['F-score'] = 0
-            specificity[i]['Specificity'] = 0
+            scores[i]['Specificity'] = 0
 
         else:
 
@@ -376,6 +374,7 @@ def compute_scores(count_dict):
             scores['F-score'] = fscore
             scores['Specificity'] = specificity
 
+    # if count_dict is nested
     elif any(isinstance(value, dict) for value in count_dict.values()): 
 
         scores = defaultdict(lambda: defaultdict(int))
@@ -387,6 +386,7 @@ def compute_scores(count_dict):
             FP = count_dict[i]['FP']
             TN = count_dict[i]['TN']
 
+            # if there is no TP, all metrics are put to zero
             if TP == 0:
 
                 scores[i]['Precision'] = 0
@@ -418,20 +418,20 @@ def compute_scores(count_dict):
 
 def count_per_category(df, level):
 
-    ##
-    ## Computes metrics for all files of a directory per category
-    ##
+    """
+        Counts TP, TN, FP, FN per category at a given level
+    """
     
     # print("Called function: count_per_category..........................")
 
-    if level == 1:
+    if level == "1":
         level = 'LEVEL1_GOLD'
-    elif level == 2:
+    elif level == "2":
         level = 'LEVEL2_GOLD'
 
     count_dict = defaultdict(lambda: defaultdict(int))
         
-    ## Extract all unique gold entities at level 1    
+    # Extract all unique gold entities at level 1    
     gold_list = df[level].tolist()
     entity_list = []
     
@@ -446,7 +446,7 @@ def count_per_category(df, level):
 
     entity_list = sorted(set(entity_list))
     
-    ## Initiate dictionary for each entity 
+    # Initiate dictionary for each entity 
     count_dict = {key:defaultdict(int) for key in entity_list}
         
     for index, row in df.iterrows():
@@ -490,9 +490,9 @@ def count_per_category(df, level):
 
 def class_boundary_evaluation(df, level, doPrint):
     
-    ##
-    ## Counts boundary and class errors at both levels
-    ##
+    """
+        Counts boundary and class errors at both levels
+    """
     
     if doPrint == True:
         print("Called function: class_boundary_evaluation.....................................")
@@ -618,20 +618,20 @@ def class_boundary_evaluation(df, level, doPrint):
                   
 def error_propagation(df):
     
-    ##
-    ## Count errors between levels such as :
-    ##
-    ## err1_corr2 = LEVEL1 error --> LEVEL2 correct
-    ## 
-    ## corr1_err2 = LEVEL1 correct --> LEVEL2 error
-    ##
-    ## err1_err2 = LEVEL1 error --> LEVEL2 error
-    ##
-    ## corr1_corr2_positive = LEVEL1 correct positive --> LEVEL2 correct positive
-    ##
-    ## corr1_corr2_negative = LEVEL1 correct negative --> LEVEL2 correct negative
-    ##
-    ##
+    """
+        Count errors between levels such as :
+    
+            err1_corr2 = LEVEL1 error --> LEVEL2 correct
+    
+            corr1_err2 = LEVEL1 correct --> LEVEL2 error
+    
+            err1_err2 = LEVEL1 error --> LEVEL2 error
+            
+            corr1_corr2_positive = LEVEL1 correct positive --> LEVEL2 correct positive
+            
+            corr1_corr2_negative = LEVEL1 correct negative --> LEVEL2 correct negative
+            
+    """
      
     print("Called function: error propagation.............................................")
         
@@ -703,9 +703,9 @@ def error_propagation(df):
 
 def pretty(d, value_order):
     
-    ##
-    ## Print dict and nested dict 
-    ##
+    """
+        Print dict and nested dict
+    """
 
     if value_order: #Si on veut l'ordre décroissant des valeurs, decreasing_dict = True
         x = 1
@@ -755,6 +755,10 @@ def pretty(d, value_order):
 
 def slot_error_rate(boundary_class_err, boundary_err, class_err, level, doPrint):
 
+    """
+        Computes slot error rate at given level
+    """
+
     if doPrint == True:
         print("Called function: slot_error_rate...............................................")
 
@@ -800,9 +804,9 @@ def slot_error_rate(boundary_class_err, boundary_err, class_err, level, doPrint)
 
 def recall_at_document_level(ind_df, level):
 
-    ##
-    ## Computes recall values per entity level at document level (i.e.: how many documents are perfectly de-identified out of all documents)
-    ##
+    """
+        Computes recall values per entity level at document level (i.e.: how many documents are perfectly de-identified out of all documents)
+    """
 
     print("Called function: recall_at_document_level......................................")
 
@@ -853,9 +857,9 @@ def recall_at_document_level(ind_df, level):
 
 def macro_values(metrics_category):
 
-    ##
-    ## Get each P and R per category from metrics_per_category, then computes the mean of all P and R
-    ## 
+    """
+        Get each P and R per category from metrics_per_category, then computes the mean of all P and R
+    """
 
     print("Called function: macro_values (computed on tokens).............................")
 
@@ -885,6 +889,10 @@ def macro_values(metrics_category):
     return
 
 def evaluation_per_entity(df, level):
+
+    """
+        Computes metrics for ENTITIES, at a given level
+    """
 
     print("Called function: evaluation_per_entity.........................................")
 
@@ -921,15 +929,18 @@ def evaluation_per_entity(df, level):
 
 def TODO_check_boundaries_logic():
     
-    ##
-    ##  Checks continuity of boundary detection
-    ##
+    """
+        Checks continuity of boundary detection
+    """
     
     return
 
 def TODO_distribution_of_errors_across_docs(ind_df, level):
 
-    ## À CLARIFIER : faut-il considérer le rappel par document ou... autre chose ?
+    """
+        Checks boundary continuity between tokens/inside entities
+        À CLARIFIER : faut-il considérer le rappel par document ou... autre chose ?
+    """
 
     for df in ind_df:
         print(count_per_level(df, level))
