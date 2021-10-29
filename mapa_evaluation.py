@@ -9,12 +9,12 @@ import sequence_labelling
 def load_TSV_to_DF(directory):
 
     """ 
-        Load all files of given directory to a single dataframe (one global dataframe)
+        Crawl given directory recursively and load all TSV files to a single dataframe (one global dataframe)
     """
 
     # print("File loading: load_TSV_to_DF......................................................")
 
-    files = glob.glob(directory + "/*.tsv")
+    files = glob.iglob(directory + '**/*.tsv', recursive=True)
     dfs = [pd.read_csv(f, sep='\t', skiprows=1, quoting=csv.QUOTE_NONE, usecols=['TOKEN','LEVEL1_GOLD','LEVEL2_GOLD','LEVEL1_PRED','LEVEL2_PRED','TOKEN_SPAN']) for f in files]
 
     df = pd.concat(dfs,ignore_index=True)
@@ -27,7 +27,7 @@ def load_each_file(directory):
         Load each file of a given directory to a dataframe (one file per dataframe) (?)
     """
 
-    files = glob.glob(directory + "/*.tsv")
+    files = glob.iglob(directory + "**/*.tsv", recursive=True)
 
     dfs = [pd.read_csv(f, sep='\t', skiprows=1, quoting=csv.QUOTE_NONE, usecols=['TOKEN','LEVEL1_GOLD','LEVEL2_GOLD','LEVEL1_PRED','LEVEL2_PRED','TOKEN_SPAN']) for f in files]
     
@@ -130,9 +130,10 @@ def get_boundary(row):
 
 def get_boundary2(row, level):
     
-    ##
-    ## Return boundaries from columns LEVEL1_GOLD, LEVEL2_GOLD, LEVEL1_PRED, LEVEL2_PRED
-    ##
+    """
+        NOT IN USE
+        Return boundaries from columns LEVEL1_GOLD, LEVEL2_GOLD, LEVEL1_PRED, LEVEL2_PRED
+    """
     
     if level == "1":
         gold_column = 'LEVEL1_GOLD'
@@ -829,7 +830,7 @@ def recall_at_document_level(ind_df, level):
 
         doc_level_recall = total_recall/count_files
 
-        print("\tRecall at document level for level", level, "entities (computed on tokens):", doc_level_recall)
+        print("\tRecall at document level for level", level, "entities (computed on tokens):", "{:.2f}".format(doc_level_recall))
         
     elif level == "3":
         for df in ind_df:    
@@ -850,8 +851,8 @@ def recall_at_document_level(ind_df, level):
 
         doc_level_recall_1 = total_recall_1/count_files
         doc_level_recall_2 = total_recall_2/count_files
-        print("\tRecall at document level for level 1 entities (computed on tokens):", doc_level_recall_1)
-        print("\tRecall at document level for level 2 entities (computed on tokens):", doc_level_recall_2)
+        print("\tRecall at document level for level 1 entities (computed on tokens):", "{:.2f}".format(doc_level_recall_1))
+        print("\tRecall at document level for level 2 entities (computed on tokens):", "{:.2f}".format(doc_level_recall_2))
 
     print("")
 
