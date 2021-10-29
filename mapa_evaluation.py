@@ -694,10 +694,10 @@ def error_propagation(df):
         # elif lvl1_err == None and lvl2_err == None:
         #     corr1_corr2_negative += 1
 
-    print("Error at level1, correct at level2:", err1_corr2)
-    print("Correct at level1, error at level2:", corr1_err2)
-    print("Errors on both levels:", err1_err2)
-    print("Correct on both levels", corr1_corr2_positive)
+    print("\tError at level1, correct at level2:\t", err1_corr2)
+    print("\tCorrect at level1, error at level2:\t", corr1_err2)
+    print("\tErrors on both levels:\t\t\t", err1_err2)
+    print("\tCorrect on both levels:\t\t\t", corr1_corr2_positive)
     print("")
     
     return err1_corr2, corr1_err2, err1_err2, corr1_corr2_positive, corr1_corr2_negative
@@ -785,7 +785,7 @@ def slot_error_rate(boundary_class_err, boundary_err, class_err, level, doPrint)
         f = boundary_err
         r = level1_gold
         SER_1 = compute_SER(d, i, tf, t, f, r)
-        print("\tSER Level 1:", "{:.2f}".format(SER_1))
+        print("\tSER Level 1:\t\t\t\t", "{:.2f}".format(SER_1))
         print("")
         return SER_1
 
@@ -797,7 +797,7 @@ def slot_error_rate(boundary_class_err, boundary_err, class_err, level, doPrint)
         f = boundary_err
         r = level2_gold
         SER_2 = compute_SER(d, i, tf, t, f, r)
-        print("\tSER Level 2:", "{:.2f}".format(SER_2))
+        print("\tSER Level 2:\t\t\t\t", "{:.2f}".format(SER_2))
         print("")
         return SER_2
 
@@ -972,10 +972,10 @@ level = args.level
 
 print("")
 if level == "1" or level == "2":
-    print("Analysis performed at level", level)
+    print("Analysis performed at level", level, "on", directory)
     print("")
 elif level == "3":
-    print("Analysis performed at both levels")
+    print("Analysis performed at both levels on", directory)
     print("")
 
 df = load_TSV_to_DF(directory)
@@ -987,6 +987,7 @@ recall_at_document_level(ind_df, level)
 # # distribution_of_errors_across_docs(ind_df, level)
 
 if level == "1" or level == "2":
+    error_propagation(df)
     boundary_class_err, boundary_err, class_err = class_boundary_evaluation(df, level, doPrint=False)
     slot_error_rate(boundary_class_err, boundary_err, class_err, level, doPrint = True)
     metrics_per_level(df, level, doPrint = True)
@@ -994,6 +995,7 @@ if level == "1" or level == "2":
     macro_values(metrics_category)
 
 elif level == "3":
+    error_propagation(df)
     boundary_class_err_1, boundary_class_err_2, boundary_err_1, boundary_err_2, class_err_1, class_err_2 = class_boundary_evaluation(df, level, doPrint=False)
     SER_1 = slot_error_rate(boundary_class_err_1, boundary_err_1, class_err_1, "1", doPrint = True)
     SER_2 = slot_error_rate(boundary_class_err_2, boundary_err_2, class_err_2, "2", doPrint = False)
